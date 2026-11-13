@@ -2,7 +2,7 @@ import 'server-only';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
-import { serverEnv } from '@/lib/server/env';
+import { secretEnv, serverEnv } from '@/lib/server/env';
 
 /**
  * Client « au nom de l'utilisateur » : il porte le jeton de la personne
@@ -35,7 +35,7 @@ let service: ReturnType<typeof createClient> | null = null;
 export function supabaseService() {
   if (service) return service;
   const env = serverEnv();
-  service = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+  service = createClient(env.NEXT_PUBLIC_SUPABASE_URL, secretEnv().SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   return service;

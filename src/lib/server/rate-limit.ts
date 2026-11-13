@@ -1,7 +1,7 @@
 import 'server-only';
 import { createHmac } from 'node:crypto';
 import { headers } from 'next/headers';
-import { serverEnv } from './env';
+import { secretEnv } from './env';
 import { supabaseService } from '@/lib/supabase/server';
 import { log } from './log';
 
@@ -22,7 +22,7 @@ export const LIMITS = {
 } as const;
 
 export function fingerprint(kind: string, value: string) {
-  return `${kind}:${createHmac('sha256', serverEnv().RATE_LIMIT_SALT).update(value.toLowerCase()).digest('hex').slice(0, 32)}`;
+  return `${kind}:${createHmac('sha256', secretEnv().RATE_LIMIT_SALT).update(value.toLowerCase()).digest('hex').slice(0, 32)}`;
 }
 
 export async function clientIp() {
