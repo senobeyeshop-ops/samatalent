@@ -9,7 +9,9 @@ export const metadata: Metadata = { title: 'Connexion', robots: { index: false }
 
 const REASONS: Record<string, string> = {
   expiree: 'Votre session a expiré après une période d’inactivité. Reconnectez-vous.',
-  lien: 'Ce lien de connexion est invalide ou a expiré. Demandez-en un nouveau.',
+  lien: 'Ce lien de connexion n’est pas valide. Demandez-en un nouveau ci-dessous.',
+  expire: 'Ce lien a déjà servi ou a expiré (un lien ne fonctionne qu’une fois). Demandez-en un nouveau.',
+  appareil: 'Ce lien a été ouvert dans un autre navigateur que celui de la demande. Demandez un nouveau lien.',
   trop: 'Trop de tentatives. Patientez quelques minutes.',
   erreur: 'La connexion n’a pas abouti. Réessayez.',
 };

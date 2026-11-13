@@ -3,6 +3,7 @@ import { currentUser, supabaseService } from '@/lib/supabase/server';
 import { allow, fingerprint, LIMITS } from '@/lib/server/rate-limit';
 import { uuidSchema } from '@/lib/validation';
 import { log } from '@/lib/server/log';
+import { appUrl } from '@/lib/server/app-url';
 
 /**
  * Le numéro WhatsApp n'est JAMAIS envoyé dans une page : on ne peut pas
@@ -14,12 +15,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const listingId = request.nextUrl.searchParams.get('annonce');
   const back = (reason: string) =>
     NextResponse.redirect(
-      new URL(listingId && uuidSchema.safeParse(listingId).success ? `/annonces/${listingId}?contact=${reason}` : '/', request.url),
+      appUrl(listingId && uuidSchema.safeParse(listingId).success ? `/annonces/${listingId}?contact=${reason}` : '/'),
       { status: 303 },
     );
 
   const { supabase, user } = await currentUser();
-  if (!user) return NextResponse.redirect(new URL('/connexion', request.url), { status: 303 });
+  if (!user) return NextResponse.redirect(appUrl('/connexion'), { status: 303 });
   if (!uuidSchema.safeParse(userId).success || userId === user.id) return back('invalide');
 
   if (!(await allow(fingerprint('contact', user.id), LIMITS.contactWhatsapp))) return back('trop');
