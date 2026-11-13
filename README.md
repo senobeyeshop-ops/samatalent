@@ -17,8 +17,8 @@ Stack : Next.js 16 · Supabase (Postgres + Auth) · Netlify · PWA installable.
 ### 1. Deux projets Supabase (règle 20 : test ≠ production)
 Sur supabase.com, dans ton organisation, crée **`samatalent-dev`** et **`samatalent-prod`** (région la plus proche : Europe West).
 Dans **chacun** :
-1. **SQL Editor** → colle `supabase/migrations/0001_init.sql` → *Run*, puis
-   `supabase/migrations/0002_photos_annonces_signalements.sql` → *Run* (toujours dans cet ordre).
+1. **SQL Editor** → exécute dans l'ordre `0001_init.sql`, `0002_photos_annonces_signalements.sql`,
+   `0003_droits_fonctions.sql` (dossier `supabase/migrations/`). *Déjà fait pour samatalent-dev et samatalent-prod.*
    Les deux espaces de stockage `avatars` et `listings` sont créés par la 1re migration
    (2 Mo max, WebP uniquement, aucune écriture possible depuis le navigateur).
 2. **Authentication → URL Configuration** :
