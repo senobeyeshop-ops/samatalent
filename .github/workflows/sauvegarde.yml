@@ -41,7 +41,7 @@ jobs:
             | age -r "$BACKUP_PUBLIC_KEY" > "$FILE"
           test $(stat -c%s "$FILE") -gt 1000   # une sauvegarde vide = échec
           echo "FILE=$FILE" >> "$GITHUB_ENV"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ env.FILE }}
           path: ${{ env.FILE }}
