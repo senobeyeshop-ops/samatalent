@@ -12,7 +12,7 @@ import { createServerClient } from '@supabase/ssr';
 const INACTIVITY_MS = 30 * 60 * 1000; //   30 min sans activité → déconnexion
 const ADMIN_INACTIVITY_MS = 15 * 60 * 1000; // 15 min pour l'admin
 const MAX_SESSION_MS = 7 * 24 * 3600 * 1000; // 7 jours maximum, puis reconnexion
-const PROTECTED = ['/profil', '/publier', '/mes-annonces', '/messages', '/admin'];
+const PROTECTED = ['/profil', '/publier', '/mes-annonces', '/messages', '/commandes', '/admin'];
 const WEBHOOKS = ['/api/webhooks/']; // protégés par signature, pas par l'origine
 
 const COOKIE_OPTS = { httpOnly: true, secure: true, sameSite: 'lax' as const, path: '/' };

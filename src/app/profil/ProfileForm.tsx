@@ -6,7 +6,7 @@ import { COUNTRIES } from '@/lib/validation';
 import type { ActionResult } from '@/lib/server/errors';
 import { updateProfile } from './actions';
 
-type Initial = Record<'display_name' | 'headline' | 'bio' | 'skills' | 'city' | 'country_code' | 'whatsapp', string>;
+type Initial = Record<'display_name' | 'headline' | 'bio' | 'skills' | 'city' | 'country_code' | 'whatsapp' | 'wave_number', string>;
 
 export function ProfileForm({ initial }: { initial: Initial }) {
   const [state, action, pending] = useActionState<ActionResult, FormData>(updateProfile, { ok: false, error: '' });
@@ -46,6 +46,15 @@ export function ProfileForm({ initial }: { initial: Initial }) {
 
       <Field id="whatsapp" label="WhatsApp (privé)" hint="Jamais affiché publiquement. Ex. : 77 123 45 67" error={f.whatsapp}>
         <input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" autoComplete="tel" defaultValue={initial.whatsapp} maxLength={20} className="field" />
+      </Field>
+
+      <Field
+        id="wave_number"
+        label="Numéro Wave pour être payé (privé)"
+        hint="Montré seulement à un acheteur dont vous avez ACCEPTÉ la commande. Vide = votre WhatsApp."
+        error={f.wave_number}
+      >
+        <input id="wave_number" name="wave_number" type="tel" inputMode="tel" defaultValue={initial.wave_number} maxLength={20} className="field" />
       </Field>
 
       <button className="btn btn-primary w-full" disabled={pending}>

@@ -14,7 +14,7 @@
     "check:secrets:build": "node scripts/scan-secrets.mjs --build",
     "audit:deps": "npm audit --audit-level=high",
     "verify": "npm run typecheck && npm run lint && npm test && npm run check:secrets && npm run audit:deps",
-    "db:test": "for m in supabase/tests/stub.sql supabase/migrations/*.sql; do psql \"$TEST_DATABASE_URL\" -v ON_ERROR_STOP=1 -f \"$m\" || exit 1; done && psql \"$TEST_DATABASE_URL\" -f supabase/tests/securite.sql -f supabase/tests/securite_0002.sql -f supabase/tests/admin_0002.sql -f supabase/tests/paiement_0004.sql"
+    "db:test": "for m in supabase/tests/stub.sql supabase/migrations/*.sql; do psql \"$TEST_DATABASE_URL\" -v ON_ERROR_STOP=1 -f \"$m\" || exit 1; done && psql \"$TEST_DATABASE_URL\" -f supabase/tests/securite.sql -f supabase/tests/securite_0002.sql -f supabase/tests/admin_0002.sql -f supabase/tests/paiement_0004.sql -f supabase/tests/commandes_0005.sql"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

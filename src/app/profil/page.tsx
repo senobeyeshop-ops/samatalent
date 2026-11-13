@@ -16,7 +16,7 @@ export default async function ProfilePage() {
       .select('display_name, headline, bio, skills, city, country_code, avatar_path')
       .eq('id', user.id)
       .single(),
-    supabase.from('profile_private').select('whatsapp').eq('user_id', user.id).maybeSingle(),
+    supabase.from('profile_private').select('whatsapp, wave_number').eq('user_id', user.id).maybeSingle(),
   ]);
 
   return (
@@ -33,6 +33,9 @@ export default async function ProfilePage() {
           <Link href="/mes-annonces" className="text-sm font-semibold underline-offset-4 hover:underline">
             Mes annonces →
           </Link>
+          <Link href="/commandes" className="text-sm font-semibold underline-offset-4 hover:underline">
+            Mes commandes →
+          </Link>
         </div>
       </div>
 
@@ -47,6 +50,7 @@ export default async function ProfilePage() {
           city: profile?.city ?? '',
           country_code: profile?.country_code ?? 'SN',
           whatsapp: priv?.whatsapp ?? '',
+          wave_number: priv?.wave_number ?? '',
         }}
       />
 

@@ -105,8 +105,21 @@ export const profileSchema = z
     city: optionalText(60, 'La ville'),
     country_code: z.enum(countryCodes, { error: 'Pays non pris en charge.' }),
     whatsapp: z.string().optional(),
+    wave_number: z.string().optional(),
   })
   .transform((v, ctx) => {
+    let wave_number: string | null = null;
+    if (v.wave_number && v.wave_number.trim()) {
+      wave_number = normalizePhone(v.wave_number, v.country_code);
+      if (!wave_number) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['wave_number'],
+          message: `Numéro Wave invalide pour ${COUNTRIES[v.country_code].name} (+${COUNTRIES[v.country_code].dial}, ${COUNTRIES[v.country_code].len} chiffres).`,
+        });
+        return z.NEVER;
+      }
+    }
     let whatsapp: string | null = null;
     if (v.whatsapp && v.whatsapp.trim()) {
       whatsapp = normalizePhone(v.whatsapp, v.country_code);
@@ -119,7 +132,7 @@ export const profileSchema = z
         return z.NEVER;
       }
     }
-    return { ...v, whatsapp };
+    return { ...v, whatsapp, wave_number };
   });
 
 export const listingSchema = z.object({
@@ -190,3 +203,20 @@ export function safeNextPath(next: string | null | undefined, fallback = '/') {
   if (!next || !next.startsWith('/') || next.startsWith('//') || next.includes('\\')) return fallback;
   return next;
 }
+
+export const orderSchema = z.object({
+  quantity: z.coerce.number({ error: 'Quantité invalide.' }).int('Quantité invalide.').min(1, 'Au moins 1.').max(99, '99 au maximum.'),
+  note: z
+    .string()
+    .max(500, '500 caractères maximum.')
+    .refine((s) => !CONTROL.test(s), 'Caractères non autorisés.')
+    .optional()
+    .transform((s) => (s && s.trim() ? s.trim() : null)),
+});
+
+export const ORDER_ACTIONS = ['accept', 'refuse', 'confirm_paid', 'not_received', 'declare_paid', 'cancel'] as const;
+export const paymentRefSchema = z
+  .string()
+  .trim()
+  .transform((s) => s.replace(/\s+/g, ''))
+  .pipe(z.union([z.literal(''), z.string().regex(/^[A-Za-z0-9-]{4,40}$/, 'Référence Wave : lettres, chiffres et tirets.')]));

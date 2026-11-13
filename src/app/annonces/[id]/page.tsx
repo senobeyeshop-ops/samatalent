@@ -7,14 +7,21 @@ import { categoryName, countryName, formatDate, formatPrice, publicImage, typeNa
 import { uuidSchema } from '@/lib/validation';
 import { Avatar } from '@/components/Avatar';
 import { ReportForm } from '@/components/ReportForm';
+import { createOrder } from '@/app/commandes/actions';
 
-type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ contact?: string }> };
+type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ contact?: string; commande?: string }> };
 
 const CONTACT_MESSAGES: Record<string, string> = {
   trop: 'Vous avez contacté beaucoup de personnes en peu de temps. Réessayez dans une heure.',
   'sans-numero': 'Cette personne n’a pas encore renseigné de numéro WhatsApp.',
   indisponible: 'Ce compte n’est pas joignable.',
   invalide: 'Contact impossible.',
+};
+
+const ORDER_MESSAGES: Record<string, string> = {
+  trop: 'Trop de commandes en peu de temps. Réessayez dans une heure.',
+  invalide: 'Quantité ou message invalide.',
+  impossible: 'Cette annonce ne peut pas être commandée pour le moment.',
 };
 
 async function load(id: string) {
@@ -54,6 +61,8 @@ export default async function ListingPage({ params, searchParams }: Params) {
   const price = formatPrice(l.price_xof, l.price_negotiable);
   const sp = await searchParams;
   const contactMsg = sp.contact ? CONTACT_MESSAGES[sp.contact] : undefined;
+  const orderMsg = sp.commande ? ORDER_MESSAGES[sp.commande] : undefined;
+  const orderable = (l.type === 'produit' || l.type === 'service') && (l.price_xof ?? 0) > 0 && l.status === 'published';
   const photos = [...(l.listing_photos ?? [])].sort((a, b) => a.position - b.position);
 
   return (
@@ -119,6 +128,31 @@ export default async function ListingPage({ params, searchParams }: Params) {
             <p role="alert" className="mb-3 rounded-xl bg-saffron-soft px-4 py-3 text-sm">
               {contactMsg}
             </p>
+          )}
+          {orderMsg && (
+            <p role="alert" className="mb-3 rounded-xl bg-danger/10 px-4 py-3 text-sm text-danger">
+              {orderMsg}
+            </p>
+          )}
+          {user && orderable && (
+            <details className="card mb-3 p-4">
+              <summary className="cursor-pointer font-semibold">🛒 Commander et payer avec Wave</summary>
+              <form action={createOrder} className="mt-3 space-y-3">
+                <input type="hidden" name="listing" value={l.id} />
+                <label className="block text-sm">
+                  Quantité
+                  <input name="quantity" type="number" min={1} max={99} defaultValue={1} required className="field mt-1" />
+                </label>
+                <label className="block text-sm">
+                  Message au vendeur <span className="text-ink-soft">(livraison, taille, date…)</span>
+                  <textarea name="note" maxLength={500} rows={3} className="field mt-1" />
+                </label>
+                <button className="btn btn-primary w-full">Envoyer la commande</button>
+                <p className="text-xs text-ink-soft">
+                  Le vendeur accepte d’abord, puis vous le payez directement sur son Wave. Rien n’est prélevé maintenant.
+                </p>
+              </form>
+            </details>
           )}
           {user ? (
             <a href={`/api/contact/${l.owner_id}?annonce=${l.id}`} rel="nofollow noopener" className="btn btn-gold w-full">
