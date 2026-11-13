@@ -14,7 +14,9 @@ let cached: z.infer<typeof schema> | null = null;
 
 export function serverEnv() {
   if (cached) return cached;
-  const parsed = schema.safeParse(process.env);
+  // NEXT_PUBLIC_APP_URL est lu explicitement : Next le remplace par l'adresse figée
+  // au build (celle de l'aperçu Netlify en test, celle du site en production).
+  const parsed = schema.safeParse({ ...process.env, NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL });
   if (!parsed.success) {
     // On nomme les variables manquantes, jamais leurs valeurs.
     const missing = parsed.error.issues.map((i) => i.path.join('.')).join(', ');

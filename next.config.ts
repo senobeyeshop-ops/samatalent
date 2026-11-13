@@ -16,16 +16,23 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
   : undefined;
 
+// Adresse de l'app figée au moment du build.
+// Sur un aperçu Netlify (deploy preview / branche), on prend l'adresse de CET aperçu,
+// sinon le contrôle d'origine (règle 13) refuserait les formulaires.
+const appUrl =
+  process.env.CONTEXT && process.env.CONTEXT !== 'production' && process.env.DEPLOY_PRIME_URL
+    ? process.env.DEPLOY_PRIME_URL
+    : process.env.NEXT_PUBLIC_APP_URL;
+
 const nextConfig: NextConfig = {
   poweredByHeader: false, // ne pas annoncer la techno utilisée
   productionBrowserSourceMaps: false, // règle 17 : pas de code source lisible en prod
   reactStrictMode: true,
+  env: appUrl ? { NEXT_PUBLIC_APP_URL: appUrl } : {},
   experimental: {
     serverActions: {
       bodySizeLimit: '1mb', // aucune action n'accepte plus
-      allowedOrigins: process.env.NEXT_PUBLIC_APP_URL
-        ? [new URL(process.env.NEXT_PUBLIC_APP_URL).host]
-        : [],
+      allowedOrigins: appUrl ? [new URL(appUrl).host] : [],
     },
   },
   images: {

@@ -12,6 +12,19 @@ Stack : Next.js 16 · Supabase (Postgres + Auth) · Netlify · PWA installable.
 
 ---
 
+## État du déploiement (13/11/2026)
+| élément | valeur |
+| --- | --- |
+| Site | https://samatalent.netlify.app (projet Netlify « samatalent », équipe OBEYE) |
+| Code | github.com/senobeyeshop-ops/samatalent, branche `main` |
+| Base production | Supabase `samatalent-prod` (eaxacivqiywkrphmgsio, Paris) — migrations 0001 à 0003 |
+| Base de test | Supabase `samatalent-dev` (cqnsqkgyczgbngqfxxfs, Paris) — utilisée par les aperçus Netlify |
+| Aperçus Netlify | protégés par la connexion de l'équipe Netlify |
+
+Variables Netlify déjà réglées : `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+`RATE_LIMIT_SALT` (une valeur pour la production, une autre pour les aperçus).
+**À ajouter à la main :** `SUPABASE_SERVICE_ROLE_KEY` (clé secrète de chaque projet Supabase).
+
 ## Mise en route (≈ 30 min)
 
 ### 1. Deux projets Supabase (règle 20 : test ≠ production)
