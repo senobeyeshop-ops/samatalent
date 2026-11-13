@@ -84,6 +84,11 @@ export default async function MyListings({ searchParams }: { searchParams: Promi
                   <Link href={`/annonces/${l.id}`} className="btn btn-ghost text-sm">
                     Voir
                   </Link>
+                  {l.status === 'published' && (
+                    <Link href={`/mes-annonces/${l.id}/booster`} className="btn btn-primary text-sm">
+                      🚀 Booster
+                    </Link>
+                  )}
                   {canRenew && (
                     <form action={renewListing}>
                       <input type="hidden" name="id" value={l.id} />

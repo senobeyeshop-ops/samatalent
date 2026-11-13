@@ -19,6 +19,7 @@ export const LIMITS = {
   avatarUpload: { max: 10, windowS: 3600 },
   report: { max: 10, windowS: 24 * 3600 },
   listingWrite: { max: 60, windowS: 3600 },
+  boostCheckout: { max: 10, windowS: 3600 },
 } as const;
 
 export function fingerprint(kind: string, value: string) {

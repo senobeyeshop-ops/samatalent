@@ -79,3 +79,10 @@ jobs:
           cat r3.txt
           grep -q "suspended |                 0" r3.txt
           test "$(grep -c 'ERROR' r3.txt)" -eq 1
+          # paiement Wave et Boost : 9 refus attendus, prix lu en base, montant falsifié rejeté, rejeu ignoré
+          psql -h localhost -U postgres -q -f supabase/tests/paiement_0004.sql > r4.txt 2>&1 || true
+          cat r4.txt
+          test "$(grep -c 'ERROR' r4.txt)" -eq 9
+          grep -q "amount_mismatch" r4.txt
+          grep -q " duplicate" r4.txt
+          grep -A2 "boost_ok" r4.txt | grep -q " t$"
