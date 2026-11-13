@@ -80,9 +80,38 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  const { data } = await supabase.auth.getClaims();
-  const claims = data?.claims;
-  const userId = claims?.sub;
+  // Lecture de la session. getClaims() vérifie la signature du jeton localement ;
+  // si elle échoue alors qu'un cookie de session est présent (constaté sur l'edge
+  // Netlify), on demande au serveur d'authentification (getUser), qui fait foi.
+  const hasSessionCookie = request.cookies.getAll().some((c) => c.name.startsWith('sb-') && c.name.includes('-auth-token'));
+  let userId: string | undefined;
+  let aal: string | undefined;
+  let claimsError: string | undefined;
+  try {
+    const { data, error } = await supabase.auth.getClaims();
+    userId = data?.claims?.sub;
+    aal = data?.claims?.aal as string | undefined;
+    if (error) claimsError = error.code ?? error.name;
+  } catch (e) {
+    claimsError = e instanceof Error ? e.name : 'exception';
+  }
+  if (!userId && hasSessionCookie) {
+    const { data: u, error: userError } = await supabase.auth.getUser();
+    if (u.user) {
+      userId = u.user.id;
+      const { data: level } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      aal = level?.currentLevel ?? undefined;
+    }
+    // Journal sans donnée personnelle : seulement des codes d'erreur (règle 18)
+    // eslint-disable-next-line no-console
+    console.warn(
+      JSON.stringify({
+        event: 'proxy.session_fallback',
+        claimsError: claimsError ?? 'none',
+        getUser: u.user ? 'ok' : (userError?.code ?? userError?.name ?? 'no_user'),
+      }),
+    );
+  }
   const isAdminPath = pathname === '/admin' || pathname.startsWith('/admin/');
 
   const finish = (res: NextResponse) => {
@@ -124,7 +153,7 @@ export async function proxy(request: NextRequest) {
     // On répond « page introuvable » pour ne pas révéler que /admin existe.
     if (!isAdmin) return finish(NextResponse.rewrite(new URL('/introuvable', request.url), { status: 404 }));
     // MFA obligatoire pour l'admin
-    if (claims?.aal !== 'aal2') return redirectTo('/connexion/mfa?next=/admin');
+    if (aal !== 'aal2') return redirectTo('/connexion/mfa?next=/admin');
   }
 
   return finish(response);
