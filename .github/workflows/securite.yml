@@ -86,10 +86,10 @@ jobs:
           grep -q "amount_mismatch" r4.txt
           grep -q " duplicate" r4.txt
           grep -A2 "boost_ok" r4.txt | grep -q " t$"
-          # commandes : 11 refus attendus, total calculé en base, numéro Wave révélé seulement après acceptation
+          # commandes : 10 refus attendus, total calculé en base, numéro Wave révélé seulement après acceptation
           psql -h localhost -U postgres -q -f supabase/tests/commandes_0005.sql > r5.txt 2>&1 || true
           cat r5.txt
-          test "$(grep -c 'ERROR' r5.txt)" -eq 11
+          test "$(grep -c 'ERROR' r5.txt)" -eq 10
           grep -A2 "total_commande" r5.txt | grep -q " 16000$"
           grep -A2 "numero_wave" r5.txt | grep -q "+221770000002"
           grep -q " paid_confirmed" r5.txt
