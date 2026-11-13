@@ -1,0 +1,81 @@
+# Contrôles de sécurité à chaque push et chaque pull request.
+# Si un contrôle échoue, la branche est rouge et ne doit pas être mise en ligne.
+name: Sécurité
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '17 3 * * 1' # chaque lundi : nouvelles failles publiées dans les dépendances
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tout l'historique, pour gitleaks
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci # installe EXACTEMENT le package-lock.json (règle 19)
+      - name: Règle 19 — chaque paquet existe vraiment
+        run: npm run check:packages
+      - name: Typage, lint, tests
+        run: npm run typecheck && npm run lint && npm test
+      - name: Règle 22 — dépendances à risque
+        run: npm run audit:deps
+      - name: Règle 21 — secrets dans le code
+        run: npm run check:secrets
+      - name: Règle 21 — secrets dans tout l'historique git (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build + aucun secret dans le code navigateur
+        env:
+          NEXT_PUBLIC_APP_URL: https://exemple.test
+          NEXT_PUBLIC_SUPABASE_URL: https://exemple.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: cle-publique-factice-ci-0000000000
+          SUPABASE_SERVICE_ROLE_KEY: cle-service-factice-ci-00000000000
+          RATE_LIMIT_SALT: 0000000000000000000000000000000000000000
+        run: npm run build && npm run check:secrets:build
+
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Règles 3, 4 et 5 — attaques contre la base + parcours admin
+        env:
+          PGPASSWORD: test
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -q -f supabase/tests/stub.sql
+          for m in supabase/migrations/*.sql; do psql -h localhost -U postgres -v ON_ERROR_STOP=1 -q -f "$m"; done
+          psql -h localhost -U postgres -q -f supabase/tests/securite.sql > r1.txt 2>&1 || true
+          psql -h localhost -U postgres -q -f supabase/tests/securite_0002.sql > r2.txt 2>&1 || true
+          cat r1.txt r2.txt
+          grep -q "amount_mismatch" r1.txt
+          grep -q "duplicate" r1.txt
+          grep -q "{t,t,t,t,t,f}" r1.txt
+          # nombre exact de tentatives interdites rejetées par la base
+          test "$(grep -c 'ERROR' r1.txt)" -eq 10
+          test "$(grep -c 'ERROR' r2.txt)" -eq 12
+          # annonce frauduleuse masquée après 3 signalements, journalisée
+          grep -A2 "visible_public" r2.txt | grep -q " 0$"
+          grep -A2 "audit_auto_hide" r2.txt | grep -q " 1$"
+          grep -A2 "statut_apres_tentative" r2.txt | grep -q "hidden"
+          # parcours admin autorisé : suspension = compte suspendu + 0 annonce en ligne
+          psql -h localhost -U postgres -q -f supabase/tests/admin_0002.sql > r3.txt 2>&1 || true
+          cat r3.txt
+          grep -q "suspended |                 0" r3.txt
+          test "$(grep -c 'ERROR' r3.txt)" -eq 1

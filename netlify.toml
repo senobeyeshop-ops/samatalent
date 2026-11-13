@@ -1,0 +1,32 @@
+# Netlify — Sama Talent
+[build]
+  command = "npm run verify && npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Règle 25 — HTTPS forcé.
+# Netlify redirige déjà automatiquement http:// → https:// (certificat Let's Encrypt).
+# Le HSTS ci-dessous interdit ensuite au navigateur de revenir en http.
+# QUAND ton domaine perso sera branché, décommente pour tout regrouper dessus :
+# [[redirects]]
+#   from = "https://TON-SITE.netlify.app/*"
+#   to = "https://TON-DOMAINE/:splat"
+#   status = 301
+#   force = true
+
+# Règle 12 — en-têtes aussi sur les fichiers statiques servis par le CDN
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+
+# Règle 20 — les aperçus de déploiement utilisent la base DE TEST :
+# dans Netlify, définir les variables Supabase avec des valeurs différentes
+# pour le contexte « Production » et pour « Deploy Previews / Branch deploys ».

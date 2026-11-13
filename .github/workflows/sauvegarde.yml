@@ -1,0 +1,49 @@
+# Règle 26 — sauvegarde automatique de la base de PRODUCTION, chaque nuit.
+#
+# À configurer UNE FOIS dans GitHub > Settings > Secrets and variables > Actions :
+#   PROD_DB_URL      : Supabase > Project Settings > Database > Connection string
+#                      (mode « Session pooler », port 5432, avec le mot de passe)
+#   BACKUP_PUBLIC_KEY: clé publique « age » (age1...). La clé PRIVÉE reste chez toi,
+#                      hors ligne : sans elle, personne ne peut lire la sauvegarde.
+#                      Générer : age-keygen -o samatalent-backup.key
+#
+# Restaurer (sur la base de TEST d'abord) :
+#   age -d -i samatalent-backup.key samatalent-AAAA-MM-JJ.dump.age > s.dump
+#   pg_restore --no-owner --no-privileges -d "$TEST_DATABASE_URL" s.dump
+name: Sauvegarde base
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # 02:00 UTC = 02:00 à Dakar
+  workflow_dispatch: # bouton « Run workflow » pour une sauvegarde manuelle
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Outils
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-16 age || sudo apt-get install -y -qq postgresql-client age
+      - name: Dump chiffré
+        env:
+          PROD_DB_URL: ${{ secrets.PROD_DB_URL }}
+          BACKUP_PUBLIC_KEY: ${{ secrets.BACKUP_PUBLIC_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$PROD_DB_URL" && test -n "$BACKUP_PUBLIC_KEY"
+          FILE="samatalent-$(date -u +%F).dump.age"
+          pg_dump "$PROD_DB_URL" --format=custom --no-owner --no-privileges \
+            --schema=public --schema=auth --schema=storage \
+            | age -r "$BACKUP_PUBLIC_KEY" > "$FILE"
+          test $(stat -c%s "$FILE") -gt 1000   # une sauvegarde vide = échec
+          echo "FILE=$FILE" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FILE }}
+          path: ${{ env.FILE }}
+          retention-days: 30
+          if-no-files-found: error

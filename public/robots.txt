@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin
+Disallow: /api/
+Disallow: /profil
+Disallow: /publier
+Disallow: /connexion
+Disallow: /auth/

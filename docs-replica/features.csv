@@ -1,0 +1,27 @@
+feature,area,priority,original,clone,notes
+Inscription / connexion (Supabase Auth email + Google),auth,must,yes,yes,service reconnu; MFA admin
+"Profil talent (photo, bio, compétences, WhatsApp, ville, pays)",profil,must,yes,yes,photo ré-encodée 512 px; WhatsApp privé
+Profil public,profil,must,yes,yes,
+Publier une annonce (6 types),annonces,must,yes,yes,validation serveur Zod
+"Photos d'annonce (max 5 × 2 Mo, jpeg/png/webp)",annonces,must,yes,yes,octets réels + ré-encodage WebP + GPS/EXIF retiré; 10 tests de fichiers piégés
+Recherche plein texte + filtres catégorie/type/pays/ville,recherche,must,yes,yes,Postgres FTS français
+Parcourir par catégorie,recherche,must,yes,yes,
+Dernières annonces sur l'accueil,recherche,must,yes,yes,
+Compteurs talents / annonces,accueil,could,yes,yes,vue agrégée publique
+Messagerie interne,messages,must,yes,no,Realtime Supabase; RLS participants uniquement
+Bouton WhatsApp,messages,must,yes,yes,redirection serveur avec connexion + limite
+Boost payant (Wave / Orange Money),paiement,must,yes,no,prix serveur; webhook signé; idempotence
+Mes annonces (modifier / supprimer / renouveler),annonces,must,yes,yes,renouvellement dans les 7 derniers jours; suppression efface les photos
+Signaler une annonce / un compte,moderation,must,partial,yes,masquage auto à 3 signalements distincts; 10/jour/compte
+Bloquer un utilisateur,moderation,should,unknown,no,
+Admin : modération annonces / comptes / signalements / paiements,admin,must,unknown,partial,"signalements, masquage, suspension faits; paiements à l étape Wave"
+"Studio IA (bio, CV, texte d'annonce)",studio,should,yes,no,plafond par utilisateur + global
+Expiration auto des annonces (60 j),annonces,should,unknown,no,tâche planifiée
+Bandeau anti-arnaque,confiance,must,yes,yes,
+Badge talent vérifié,confiance,could,no,no,
+Multi-pays UEMOA (8) + indicatifs téléphoniques,localisation,must,no,yes,ajout du clone
+PWA installable Android,plateforme,must,yes,yes,
+Notifications email nouveau message,notifications,should,unknown,no,Resend
+Suppression de compte + export de données,conformite,must,unknown,no,CDP Sénégal / lois UEMOA
+Sauvegarde automatique quotidienne,ops,must,unknown,partial,
+Chaîne WhatsApp communauté,communaute,skip,yes,no,réseau propre à l'original — créer la vôtre

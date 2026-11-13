@@ -1,25 +1,21 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig, globalIgnores } from 'eslint/config';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTs from 'eslint-config-next/typescript';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+export default defineConfig([
+  ...nextVitals,
+  ...nextTs,
   {
-    ignores: [
-      "node_modules/**",
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-    ],
+    rules: {
+      // Règle 18 : pas de console.* en dehors du logger qui masque les données perso
+      'no-console': 'error',
+      // Règle 10 : pas de code évalué dynamiquement
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+      'no-new-func': 'error',
+      'react/no-danger': 'error', // pas de dangerouslySetInnerHTML
+    },
   },
-];
-
-export default eslintConfig;
+  { files: ['src/lib/server/log.ts', 'scripts/**'], rules: { 'no-console': 'off' } },
+  globalIgnores(['.next/**', 'node_modules/**', 'next-env.d.ts']),
+]);
