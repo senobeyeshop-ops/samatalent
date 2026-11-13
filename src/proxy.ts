@@ -143,7 +143,16 @@ export async function proxy(request: NextRequest) {
   // ---- Règle 5 : pages protégées ----
   const needsAuth = PROTECTED.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   if (needsAuth && !userId) {
-    return redirectTo(`/connexion?next=${encodeURIComponent(pathname)}`);
+    // Un cookie de session est là mais l'edge n'a pas su le lire : on laisse la page
+    // décider (chaque page protégée appelle requireUser/requireAdmin côté serveur,
+    // qui redirige lui-même vers /connexion si la session est vraiment absente).
+    // Sans cela, le proxy et la page se contredisent et l'utilisateur fait des
+    // allers-retours entre /publier et /connexion.
+    // Journal : seulement les NOMS des cookies sb-*, jamais leurs valeurs (règle 18).
+    const sbNames = request.cookies.getAll().map((c) => c.name).filter((n) => n.startsWith('sb-'));
+    // eslint-disable-next-line no-console
+    console.warn(JSON.stringify({ event: 'proxy.protected_no_user', path: pathname, sbCookies: sbNames }));
+    if (!hasSessionCookie) return redirectTo(`/connexion?next=${encodeURIComponent(pathname)}`);
   }
 
   if (isAdminPath && userId) {
