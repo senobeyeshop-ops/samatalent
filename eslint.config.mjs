@@ -17,5 +17,5 @@ export default defineConfig([
     },
   },
   { files: ['src/lib/server/log.ts', 'scripts/**'], rules: { 'no-console': 'off' } },
-  globalIgnores(['.next/**', 'node_modules/**', 'next-env.d.ts']),
+  globalIgnores(['.next/**', '.netlify/**', 'node_modules/**', 'next-env.d.ts', 'docs-replica/**']),
 ]);
